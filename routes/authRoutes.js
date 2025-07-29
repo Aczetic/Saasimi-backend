@@ -1,6 +1,7 @@
 import express from 'express';
 import userModel from '../models/userModel.js';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 const router = express.Router();
 
 const userExistsMiddleware =async (req,res,next)=>{
@@ -29,6 +30,9 @@ router.post('/sign-up',userExistsMiddleware,async (req,res)=>{
             const hashedPassword = bcrypt.hashSync(req.body.password,10);
             
             await userModel.create({...req.body,password:hashedPassword});
+            const token = jwt.sign({name:req.body.userName , email:req.body.email}, process.env.JWT_SECRET)
+
+            res.cookie('token',token);
             res.status(201).json({success:true, message:'SIGN_UP_SUCCESSFUL'})
         }
     }catch(e){
@@ -42,8 +46,13 @@ router.post('/login',userExistsMiddleware,async (req,res)=>{
     try{
         if(req.user){
 
-            if(bcrypt.compareSync(req.body.password,req.user.password))
+            if(bcrypt.compareSync(req.body.password,req.user.password)){
+
+                const token = jwt.sign({name:req.body.userName , email:req.body.email}, process.env.JWT_SECRET)
+                res.cookie('token',token);
                 res.status(202).json({success:true, message:'LOG_IN_SUCCESSFUL'})
+                
+            }
             else{
                 res.status(400).json({success:false,message:'WRONG_PASSWORD'})
             }
