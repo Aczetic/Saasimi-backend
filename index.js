@@ -3,21 +3,16 @@ import express from 'express';
 import dotenv from 'dotenv'
 import connectDB from './db.js';
 import userModel from './models/userModel.js';
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({extended:true}))
 connectDB();
 
 
-app.post('/sign-up', async(req,res)=>{
-    try{ // todo : check for duplicacy of username and email
-       const user = await userModel.create({fullName:'Ananya Singh' , userName:'first' , email:'hello@world.com' , password:'1234134'});
-        res.status(201).json({success:true , message:'USER_CREATED_SUCCESSFULLY'})
-    }catch(e){
-        console.log(e.name,e.message);
-        res.status(500).json({success:false , message:'SERVER_ERROR'})
-    }
-})
+app.use('/auth', authRoutes)
 
 
 
