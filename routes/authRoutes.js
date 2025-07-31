@@ -6,6 +6,7 @@ const router = express.Router();
 
 const userExistsMiddleware =async (req,res,next)=>{
     try{
+        console.log(req.body)
         const user = await userModel.findOne({
             $or:[
                 {userName:req.body.userName},
@@ -18,7 +19,7 @@ const userExistsMiddleware =async (req,res,next)=>{
         next();    
     }catch(e){
         console.log(e);
-        req.status(500).json({success:false, message:'SERVER_ERROR'})
+        res.status(500).json({success:false, message:'SERVER_ERROR'})
     }
 }
 
@@ -46,7 +47,7 @@ router.post('/login',userExistsMiddleware,async (req,res)=>{
     try{
         if(req.user){
 
-            if(bcrypt.compareSync(req.body.password,req.user.password)){
+            if(bcrypt.compareSync(req.body.password,req.user.password) && req.user.email === req.body.email && req.user.userName === req.body.userName){
 
                 const token = jwt.sign({name:req.body.userName , email:req.body.email}, process.env.JWT_SECRET)
                 res.cookie('token',token);
@@ -54,7 +55,7 @@ router.post('/login',userExistsMiddleware,async (req,res)=>{
                 
             }
             else{
-                res.status(400).json({success:false,message:'WRONG_PASSWORD'})
+                res.status(400).json({success:false,message:'INCORRECT_CREDENTIALS'})
             }
             
         }else{
